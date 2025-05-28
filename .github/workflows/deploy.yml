@@ -1,0 +1,71 @@
+name: Deploy to Azure
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    environment: 'env backend' # Link to the environment
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js for Backend
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+        cache-dependency-path: './backend/package-lock.json'
+
+    - name: Install Backend Dependencies
+      working-directory: ./backend
+      run: npm ci
+
+    - name: Build Backend
+      working-directory: ./backend
+      run: npm run build --if-present # Use --if-present in case build isn't strictly necessary for deployment
+
+    - name: Zip backend build
+      working-directory: ./backend
+      run: zip -r backend.zip . -x "node_modules/*" # Zip contents of backend dir, excluding node_modules
+
+    - name: Deploy backend to Azure Web App
+      run: | # Using | for multi-line command
+        curl -X POST "https://${{ secrets.AZURE_WEBAPP_BACKEND_NAME }}.scm.azurewebsites.net/api/zipdeploy" \
+        -u "${{ secrets.AZURE_WEBAPP_BACKEND_PUBLISH_PROFILE }}" \
+        --data-binary @backend/backend.zip
+
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    environment: 'env backend' # Link to the environment
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js for Frontend
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+        cache-dependency-path: './frontend/package-lock.json'
+
+    - name: Install Frontend Dependencies
+      working-directory: ./frontend
+      run: npm ci --legacy-peer-deps
+
+    - name: Build Frontend
+      working-directory: ./frontend
+      run: npm run build
+
+    - name: Zip frontend build
+      working-directory: ./frontend/dist # Change directory to build output
+      run: zip -r frontend.zip . # Zip contents of dist dir
+
+    - name: Deploy frontend to Azure Web App
+      run: | # Using | for multi-line command
+        curl -X POST "https://${{ secrets.AZURE_WEBAPP_FRONTEND_NAME }}.scm.azurewebsites.net/api/zipdeploy" \
+        -u "${{ secrets.AZURE_WEBAPP_FRONTEND_PUBLISH_PROFILE }}" \
+        --data-binary @frontend/dist/frontend.zip # Correct path to the zip file 
