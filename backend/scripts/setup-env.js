@@ -5,7 +5,8 @@ const envExample = `# Database Configuration
 DB_USER=sa
 DB_PASSWORD=YourStrong!Passw0rd
 DB_SERVER=localhost
-DB_NAME=test_db
+DB_DATABASE=test_db
+DB_ENCRYPT=true
 
 # JWT Configuration
 JWT_SECRET=your-secret-key
@@ -19,7 +20,8 @@ const envTest = `# Database Configuration
 DB_USER=sa
 DB_PASSWORD=YourStrong!Passw0rd
 DB_SERVER=localhost
-DB_NAME=test_db
+DB_DATABASE=test_db
+DB_ENCRYPT=true
 
 # JWT Configuration
 JWT_SECRET=test-secret-key
@@ -46,5 +48,6 @@ console.log('\nTo set up GitHub Secrets, go to your repository settings and add 
 console.log('- DB_USER');
 console.log('- DB_PASSWORD');
 console.log('- DB_SERVER');
-console.log('- DB_NAME');
+console.log('- DB_DATABASE');
+console.log('- DB_ENCRYPT');
 console.log('- JWT_SECRET'); 

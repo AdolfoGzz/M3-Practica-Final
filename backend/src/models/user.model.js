@@ -49,9 +49,7 @@ class User {
     }
 
     static async deleteAll() {
-        const result = await db.request()
-            .query('DELETE FROM Adolfo');
-        return result.rowsAffected[0] > 0;
+        await db.request().query('DELETE FROM Adolfo');
     }
 }
 
