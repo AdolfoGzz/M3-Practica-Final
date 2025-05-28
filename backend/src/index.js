@@ -1,23 +1,26 @@
-const express = require('express');
-const cors = require('cors');
-const swaggerUi = require('swagger-ui-express');
-const { connectDB } = require('./config/db');
-const userController = require('./controllers/user.controller');
-const auth = require('./middleware/auth');
-const swaggerSpecs = require('./config/swagger');
-require('dotenv').config();
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import swaggerUi from 'swagger-ui-express';
+import swaggerJsdoc from 'swagger-jsdoc';
+import userRoutes from './routes/user.routes.js';
+import { swaggerOptions } from './config/swagger.js';
+import { connectDB } from './config/db.js';
+import userController from './controllers/user.controller.js';
+import auth from './middleware/auth.js';
+
+dotenv.config();
 
 const app = express();
+const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Swagger Documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
-
-// Connect to database
-connectDB();
+// Swagger
+const specs = swaggerJsdoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 // Routes
 // Public routes
@@ -30,8 +33,12 @@ app.post('/api/users', auth, userController.register);
 app.put('/api/users/:id', auth, userController.updateUser);
 app.delete('/api/users/:id', auth, userController.deleteUser);
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-    console.log(`Swagger documentation available at http://localhost:${PORT}/api-docs`);
+app.use('/api/users', userRoutes);
+
+// Connect to database
+connectDB();
+
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+    console.log(`Swagger documentation available at http://localhost:${port}/api-docs`);
 }); 
