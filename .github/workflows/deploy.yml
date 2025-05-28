@@ -33,8 +33,9 @@ jobs:
       run: zip -r backend.zip . -x "node_modules/*" # Zip contents of backend dir, excluding node_modules
 
     - name: Deploy backend to Azure Web App
-      run: | # Using | for multi-line command
-        curl -X POST "https://${{ secrets.AZURE_WEBAPP_BACKEND_NAME }}.scm.azurewebsites.net/api/zipdeploy" \
+      run: |
+        SCM_URL="https://${{ secrets.AZURE_WEBAPP_BACKEND_NAME }}.scm.azurewebsites.net/api/zipdeploy"
+        curl -X POST "$SCM_URL" \
         -u "${{ secrets.AZURE_WEBAPP_BACKEND_PUBLISH_PROFILE }}" \
         --data-binary @backend/backend.zip
 
@@ -65,7 +66,8 @@ jobs:
       run: zip -r frontend.zip . # Zip contents of dist dir
 
     - name: Deploy frontend to Azure Web App
-      run: | # Using | for multi-line command
-        curl -X POST "https://${{ secrets.AZURE_WEBAPP_FRONTEND_NAME }}.scm.azurewebsites.net/api/zipdeploy" \
+      run: |
+        SCM_URL="https://${{ secrets.AZURE_WEBAPP_FRONTEND_NAME }}.scm.azurewebsites.net/api/zipdeploy"
+        curl -X POST "$SCM_URL" \
         -u "${{ secrets.AZURE_WEBAPP_FRONTEND_PUBLISH_PROFILE }}" \
         --data-binary @frontend/dist/frontend.zip # Correct path to the zip file 
