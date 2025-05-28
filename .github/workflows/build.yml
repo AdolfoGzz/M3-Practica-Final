@@ -9,6 +9,7 @@ on:
 jobs:
   build-backend:
     runs-on: ubuntu-latest
+    environment: 'env backend'
     steps:
     - uses: actions/checkout@v4
 
