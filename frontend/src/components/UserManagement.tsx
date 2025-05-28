@@ -36,7 +36,7 @@ export function UserManagement() {
         try {
             const data = await api.users.getAll();
             setUsers(data);
-        } catch (error) {
+        } catch {
             toast.error('Failed to fetch users');
         }
     };
@@ -53,7 +53,7 @@ export function UserManagement() {
             setIsCreateDialogOpen(false);
             setFormData({ username: '', password: '' });
             fetchUsers();
-        } catch (error) {
+        } catch {
             toast.error('Failed to create user');
         }
     };
@@ -67,7 +67,7 @@ export function UserManagement() {
             setIsEditDialogOpen(false);
             setFormData({ username: '', password: '' });
             fetchUsers();
-        } catch (error) {
+        } catch {
             toast.error('Failed to update user');
         }
     };
@@ -78,7 +78,7 @@ export function UserManagement() {
             await api.users.delete(id);
             toast.success('User deleted successfully');
             fetchUsers();
-        } catch (error) {
+        } catch {
             toast.error('Failed to delete user');
         }
     };

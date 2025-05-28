@@ -1,11 +1,10 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { AuthContextType, User, LoginResponse } from './types';
+import type { User, LoginResponse } from './types';
 import { jwtDecode } from 'jwt-decode';
+import { AuthContext } from './auth-context';
 
 const API_URL = 'http://localhost:3000/api';
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
@@ -63,12 +62,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             {children}
         </AuthContext.Provider>
     );
-}
-
-export function useAuth() {
-    const context = useContext(AuthContext);
-    if (context === undefined) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
 } 

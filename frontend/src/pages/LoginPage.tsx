@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../lib/AuthContext';
+import { useAuth } from '../lib/useAuth';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -20,7 +20,7 @@ export function Login() {
         try {
             await login(username, password);
             navigate('/dashboard');
-        } catch (err) {
+        } catch {
             setError('Invalid username or password');
         }
     };

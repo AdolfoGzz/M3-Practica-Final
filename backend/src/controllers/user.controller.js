@@ -1,6 +1,8 @@
-const User = require('../models/user.model');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { db } from '../config/db.js';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 /**
  * @swagger
@@ -43,259 +45,167 @@ const jwt = require('jsonwebtoken');
  *           type: string
  */
 
-const userController = {
-    /**
-     * @swagger
-     * /api/users:
-     *   post:
-     *     summary: Register a new user
-     *     tags: [Users]
-     *     security:
-     *       - bearerAuth: []
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             $ref: '#/components/schemas/RegisterRequest'
-     *     responses:
-     *       201:
-     *         description: User created successfully
-     *       400:
-     *         description: Username already exists
-     *       500:
-     *         description: Server error
-     */
-    async register(req, res) {
-        try {
-            const { username, password } = req.body;
-
-            // Check if user already exists
-            const existingUser = await User.findByUsername(username);
-            if (existingUser) {
-                return res.status(400).json({ message: 'Username already exists' });
-            }
-
-            // Create new user
-            const newUser = await User.create(username, password);
-            res.status(201).json({ message: 'User created successfully', userId: newUser.idUser });
-        } catch (error) {
-            res.status(500).json({ message: 'Error creating user', error: error.message });
+export const login = async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        
+        const result = await db.request()
+            .input('username', username)
+            .query('SELECT * FROM Adolfo WHERE username = @username');
+        
+        const user = result.recordset[0];
+        
+        if (!user || !await bcrypt.compare(password, user.password)) {
+            return res.status(401).json({ message: 'Invalid credentials' });
         }
-    },
 
-    /**
-     * @swagger
-     * /api/auth/login:
-     *   post:
-     *     summary: Login user
-     *     tags: [Auth]
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             $ref: '#/components/schemas/LoginRequest'
-     *     responses:
-     *       200:
-     *         description: Login successful
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 token:
-     *                   type: string
-     *       400:
-     *         description: Invalid credentials
-     *       500:
-     *         description: Server error
-     */
-    async login(req, res) {
-        try {
-            const { username, password } = req.body;
+        const token = jwt.sign(
+            { id: user.idUser, username: user.username },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
 
-            // Find user
-            const user = await User.findByUsername(username);
-            if (!user) {
-                return res.status(400).json({ message: 'User not found' });
-            }
-
-            // Verify password
-            const validPassword = await bcrypt.compare(password, user.password);
-            if (!validPassword) {
-                return res.status(400).json({ message: 'Invalid password' });
-            }
-
-            // Create and assign token
-            const token = jwt.sign(
-                { idUser: user.idUser, username: user.username },
-                process.env.JWT_SECRET,
-                { expiresIn: '1h' }
-            );
-
-            res.json({ token });
-        } catch (error) {
-            res.status(500).json({ message: 'Error logging in', error: error.message });
-        }
-    },
-
-    /**
-     * @swagger
-     * /api/users:
-     *   get:
-     *     summary: Get all users
-     *     tags: [Users]
-     *     security:
-     *       - bearerAuth: []
-     *     responses:
-     *       200:
-     *         description: List of users
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: array
-     *               items:
-     *                 $ref: '#/components/schemas/User'
-     *       401:
-     *         description: Unauthorized
-     *       500:
-     *         description: Server error
-     */
-    async getAllUsers(req, res) {
-        try {
-            const users = await User.getAll();
-            res.json(users);
-        } catch (error) {
-            res.status(500).json({ message: 'Error fetching users', error: error.message });
-        }
-    },
-
-    /**
-     * @swagger
-     * /api/users/{id}:
-     *   get:
-     *     summary: Get user by ID
-     *     tags: [Users]
-     *     security:
-     *       - bearerAuth: []
-     *     parameters:
-     *       - in: path
-     *         name: id
-     *         schema:
-     *           type: integer
-     *         required: true
-     *         description: User ID
-     *     responses:
-     *       200:
-     *         description: User found
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/User'
-     *       401:
-     *         description: Unauthorized
-     *       404:
-     *         description: User not found
-     *       500:
-     *         description: Server error
-     */
-    async getUserById(req, res) {
-        try {
-            const user = await User.findById(req.params.id);
-            if (!user) {
-                return res.status(404).json({ message: 'User not found' });
-            }
-            res.json(user);
-        } catch (error) {
-            res.status(500).json({ message: 'Error fetching user', error: error.message });
-        }
-    },
-
-    /**
-     * @swagger
-     * /api/users/{id}:
-     *   put:
-     *     summary: Update user
-     *     tags: [Users]
-     *     security:
-     *       - bearerAuth: []
-     *     parameters:
-     *       - in: path
-     *         name: id
-     *         schema:
-     *           type: integer
-     *         required: true
-     *         description: User ID
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             $ref: '#/components/schemas/RegisterRequest'
-     *     responses:
-     *       200:
-     *         description: User updated successfully
-     *       401:
-     *         description: Unauthorized
-     *       404:
-     *         description: User not found
-     *       500:
-     *         description: Server error
-     */
-    async updateUser(req, res) {
-        try {
-            const { username, password } = req.body;
-            const success = await User.update(req.params.id, username, password);
-            
-            if (!success) {
-                return res.status(404).json({ message: 'User not found' });
-            }
-            
-            res.json({ message: 'User updated successfully' });
-        } catch (error) {
-            res.status(500).json({ message: 'Error updating user', error: error.message });
-        }
-    },
-
-    /**
-     * @swagger
-     * /api/users/{id}:
-     *   delete:
-     *     summary: Delete user
-     *     tags: [Users]
-     *     security:
-     *       - bearerAuth: []
-     *     parameters:
-     *       - in: path
-     *         name: id
-     *         schema:
-     *           type: integer
-     *         required: true
-     *         description: User ID
-     *     responses:
-     *       200:
-     *         description: User deleted successfully
-     *       401:
-     *         description: Unauthorized
-     *       404:
-     *         description: User not found
-     *       500:
-     *         description: Server error
-     */
-    async deleteUser(req, res) {
-        try {
-            const success = await User.delete(req.params.id);
-            
-            if (!success) {
-                return res.status(404).json({ message: 'User not found' });
-            }
-            
-            res.json({ message: 'User deleted successfully' });
-        } catch (error) {
-            res.status(500).json({ message: 'Error deleting user', error: error.message });
-        }
+        res.json({ token });
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
-module.exports = userController; 
+export const getAllUsers = async (req, res) => {
+    try {
+        const result = await db.request().query('SELECT idUser, username FROM Adolfo');
+        res.json(result.recordset);
+    } catch (error) {
+        console.error('Get all users error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+export const getUserById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await db.request()
+            .input('id', id)
+            .query('SELECT idUser, username FROM Adolfo WHERE idUser = @id');
+        
+        if (result.recordset.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.json(result.recordset[0]);
+    } catch (error) {
+        console.error('Get user by id error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+export const register = async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        
+        // Check if user already exists
+        const existingUser = await db.request()
+            .input('username', username)
+            .query('SELECT * FROM Adolfo WHERE username = @username');
+        
+        if (existingUser.recordset.length > 0) {
+            return res.status(400).json({ message: 'Username already exists' });
+        }
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Insert new user
+        await db.request()
+            .input('username', username)
+            .input('password', hashedPassword)
+            .query('INSERT INTO Adolfo (username, password) VALUES (@username, @password)');
+
+        res.status(201).json({ message: 'User created successfully' });
+    } catch (error) {
+        console.error('Register error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+export const updateUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { username, password } = req.body;
+
+        // Check if user exists
+        const existingUser = await db.request()
+            .input('id', id)
+            .query('SELECT * FROM Adolfo WHERE idUser = @id');
+        
+        if (existingUser.recordset.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Check if new username is already taken
+        if (username) {
+            const usernameCheck = await db.request()
+                .input('username', username)
+                .input('id', id)
+                .query('SELECT * FROM Adolfo WHERE username = @username AND idUser != @id');
+            
+            if (usernameCheck.recordset.length > 0) {
+                return res.status(400).json({ message: 'Username already exists' });
+            }
+        }
+
+        // Update user
+        if (password) {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            await db.request()
+                .input('id', id)
+                .input('username', username)
+                .input('password', hashedPassword)
+                .query('UPDATE Adolfo SET username = @username, password = @password WHERE idUser = @id');
+        } else {
+            await db.request()
+                .input('id', id)
+                .input('username', username)
+                .query('UPDATE Adolfo SET username = @username WHERE idUser = @id');
+        }
+
+        res.json({ message: 'User updated successfully' });
+    } catch (error) {
+        console.error('Update user error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+export const deleteUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Check if user exists
+        const existingUser = await db.request()
+            .input('id', id)
+            .query('SELECT * FROM Adolfo WHERE idUser = @id');
+        
+        if (existingUser.recordset.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        await db.request()
+            .input('id', id)
+            .query('DELETE FROM Adolfo WHERE idUser = @id');
+
+        res.json({ message: 'User deleted successfully' });
+    } catch (error) {
+        console.error('Delete user error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+export default {
+    login,
+    getAllUsers,
+    getUserById,
+    register,
+    updateUser,
+    deleteUser
+}; 

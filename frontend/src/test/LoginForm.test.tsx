@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { LoginForm } from '../components/LoginForm'; // Adjust this import based on your component structure
+import { LoginForm } from '../components/custom/LoginForm'; // Adjust this import based on your component structure
 
 describe('LoginForm', () => {
   it('renders login form', () => {

@@ -1,12 +1,12 @@
-const swaggerJsdoc = require('swagger-jsdoc');
+import swaggerJsdoc from 'swagger-jsdoc';
 
-const options = {
+export const swaggerOptions = {
     definition: {
         openapi: '3.0.0',
         info: {
             title: 'User Management API',
             version: '1.0.0',
-            description: 'A RESTful API for user management with MS SQL Server. To use protected endpoints, first register or login to get a JWT token, then click the Authorize button at the top and enter your token in the format: Bearer your_token_here',
+            description: 'A simple user management API with authentication',
         },
         servers: [
             {
@@ -20,17 +20,56 @@ const options = {
                     type: 'http',
                     scheme: 'bearer',
                     bearerFormat: 'JWT',
-                    description: 'Enter your JWT token in the format: Bearer your_token_here'
+                },
+            },
+            schemas: {
+                User: {
+                    type: 'object',
+                    properties: {
+                        idUser: {
+                            type: 'integer',
+                            description: 'The user ID',
+                        },
+                        username: {
+                            type: 'string',
+                            description: 'The username',
+                        },
+                    },
+                },
+                LoginRequest: {
+                    type: 'object',
+                    required: ['username', 'password'],
+                    properties: {
+                        username: {
+                            type: 'string',
+                            description: 'The username',
+                        },
+                        password: {
+                            type: 'string',
+                            description: 'The password',
+                        },
+                    },
+                },
+                RegisterRequest: {
+                    type: 'object',
+                    required: ['username', 'password'],
+                    properties: {
+                        username: {
+                            type: 'string',
+                            description: 'The username',
+                        },
+                        password: {
+                            type: 'string',
+                            description: 'The password',
+                        },
+                    },
                 },
             },
         },
-        security: [{
-            bearerAuth: [],
-        }],
     },
-    apis: ['./src/controllers/*.js'], // Path to the API docs
+    apis: ['./src/routes/*.js', './src/controllers/*.js'],
 };
 
-const specs = swaggerJsdoc(options);
+const specs = swaggerJsdoc(swaggerOptions);
 
-module.exports = specs; 
+export default specs; 
