@@ -12,7 +12,8 @@
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "setup": "node scripts/setup-env.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

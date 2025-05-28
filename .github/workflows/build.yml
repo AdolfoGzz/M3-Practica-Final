@@ -28,10 +28,22 @@ jobs:
       run: npm run build
       env:
         NODE_ENV: production
+        DB_USER: ${{ secrets.DB_USER }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        DB_SERVER: ${{ secrets.DB_SERVER }}
+        DB_NAME: ${{ secrets.DB_NAME }}
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
     - name: Run Backend Tests
       working-directory: ./backend
       run: npm test
+      env:
+        NODE_ENV: test
+        DB_USER: ${{ secrets.DB_USER }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        DB_SERVER: ${{ secrets.DB_SERVER }}
+        DB_NAME: ${{ secrets.DB_NAME }}
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
       if: success()
 
     - name: Upload Backend Build Artifacts
