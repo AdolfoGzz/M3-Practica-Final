@@ -36,7 +36,11 @@ app.use('/api/users', userRoutes);
 // Connect to database
 connectDB();
 
-app.listen(port, () => {
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
     console.log(`Swagger documentation available at http://localhost:${port}/api-docs`);
-}); 
+  });
+}
+
+export { app }; 

@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import type { FormEvent } from 'react';
 import LoginForm from '../components/custom/LoginForm';
-import { render, screen } from './test-utils';
+import { render, screen, waitFor } from './test-utils';
 
 describe('LoginForm', () => {
   it('renders login form', () => {
@@ -22,11 +22,13 @@ describe('LoginForm', () => {
     });
     render(<LoginForm onSubmit={mockSubmit} loading={false} />);
     
-    const loginButton = screen.getByRole('button', { name: /login/i });
-    await userEvent.click(loginButton);
+    const submitButton = screen.getByRole('button', { name: /login/i });
+    await userEvent.click(submitButton);
 
-    expect(screen.getByText(/email is required/i)).toBeInTheDocument();
-    expect(screen.getByText(/password is required/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/email is required/i)).toBeInTheDocument();
+      expect(screen.getByText(/password is required/i)).toBeInTheDocument();
+    });
   });
 
   it('submits form with valid data', async () => {
@@ -38,8 +40,8 @@ describe('LoginForm', () => {
     await userEvent.type(screen.getByPlaceholderText(/email/i), 'test@example.com');
     await userEvent.type(screen.getByPlaceholderText(/password/i), 'password123');
     
-    const loginButton = screen.getByRole('button', { name: /login/i });
-    await userEvent.click(loginButton);
+    const submitButton = screen.getByRole('button', { name: /login/i });
+    await userEvent.click(submitButton);
 
     expect(mockSubmit).toHaveBeenCalled();
   });
