@@ -8,7 +8,7 @@ on:
 jobs:
   deploy-backend:
     runs-on: ubuntu-latest
-    environment: 'env backend' # Link to the environment
+    environment: 'env backend' # Link to the environment (if secrets are there)
 
     steps:
     - uses: actions/checkout@v4
@@ -26,22 +26,19 @@ jobs:
 
     - name: Build Backend
       working-directory: ./backend
-      run: npm run build --if-present # Use --if-present in case build isn't strictly necessary for deployment
+      run: npm run build
 
-    - name: Zip backend build
-      working-directory: ./backend
-      run: zip -r backend.zip . -x "node_modules/*" # Zip contents of backend dir, excluding node_modules
-
-    - name: Deploy backend to Azure Web App
-      run: |
-        SCM_URL="https://${{ secrets.AZURE_WEBAPP_BACKEND_NAME }}.scm.azurewebsites.net/api/zipdeploy"
-        curl -X POST "$SCM_URL" \
-        -u "${{ secrets.AZURE_WEBAPP_BACKEND_PUBLISH_PROFILE }}" \
-        --data-binary @backend/backend.zip
+    - name: 'Deploy backend to Azure Web App'
+      id: deploy-to-webapp
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ secrets.AZURE_WEBAPP_BACKEND_NAME }} # Use Web App Name secret
+        publish-profile: ${{ secrets.AZURE_WEBAPP_BACKEND_PUBLISH_PROFILE }} # Use Publish Profile secret
+        package: ./backend/dist # Assuming build output is in backend/dist
 
   deploy-frontend:
     runs-on: ubuntu-latest
-    environment: 'env backend' # Link to the environment
+    environment: 'env backend' # Link to the environment (if secrets are there)
 
     steps:
     - uses: actions/checkout@v4
@@ -61,13 +58,12 @@ jobs:
       working-directory: ./frontend
       run: npm run build
 
-    - name: Zip frontend build
-      working-directory: ./frontend/dist # Change directory to build output
-      run: zip -r frontend.zip . # Zip contents of dist dir
-
-    - name: Deploy frontend to Azure Web App
-      run: |
-        SCM_URL="https://${{ secrets.AZURE_WEBAPP_FRONTEND_NAME }}.scm.azurewebsites.net/api/zipdeploy"
-        curl -X POST "$SCM_URL" \
-        -u "${{ secrets.AZURE_WEBAPP_FRONTEND_PUBLISH_PROFILE }}" \
-        --data-binary @frontend/dist/frontend.zip # Correct path to the zip file 
+    - name: Deploy frontend to Azure Static Web Apps
+      uses: Azure/static-web-apps-deploy@v1
+      with:
+        azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APP_TOKEN }} # Use Static Web App Token secret
+        repo_token: ${{ secrets.GITHUB_TOKEN }} # Provided by GitHub Actions
+        action: "upload"
+        app_location: "/frontend" # Location of your frontend code relative to repo root
+        output_location: "dist" # Location of your build output relative to app_location
+        api_location: "/backend" # Location of your backend code relative to repo root (for SWA built-in API) 
