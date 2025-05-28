@@ -23,11 +23,11 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 // Routes
 // Public routes
 app.post('/api/auth/login', userController.login);
+app.post('/api/auth/register', userController.register);
 
 // Protected routes
 app.get('/api/users', auth, userController.getAllUsers);
 app.get('/api/users/:id', auth, userController.getUserById);
-app.post('/api/users', auth, userController.register);
 app.put('/api/users/:id', auth, userController.updateUser);
 app.delete('/api/users/:id', auth, userController.deleteUser);
 
