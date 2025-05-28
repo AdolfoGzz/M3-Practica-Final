@@ -62,10 +62,14 @@ jobs:
       run: npm run build
       env:
         NODE_ENV: production
+        CI: true
 
     - name: Run Frontend Tests
       working-directory: ./frontend
       run: npm test
+      env:
+        CI: true
+        NODE_ENV: test
       if: success()
 
     - name: Upload Frontend Build Artifacts
