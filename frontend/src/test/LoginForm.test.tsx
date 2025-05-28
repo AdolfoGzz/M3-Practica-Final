@@ -1,20 +1,15 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { BrowserRouter } from 'react-router-dom';
 import type { FormEvent } from 'react';
 import LoginForm from '../components/custom/LoginForm';
+import { render, screen } from './test-utils';
 
 describe('LoginForm', () => {
   it('renders login form', () => {
     const mockSubmit = vi.fn((e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
     });
-    render(
-      <BrowserRouter>
-        <LoginForm onSubmit={mockSubmit} loading={false} />
-      </BrowserRouter>
-    );
+    render(<LoginForm onSubmit={mockSubmit} loading={false} />);
     
     expect(screen.getByPlaceholderText(/email/i)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/password/i)).toBeInTheDocument();
@@ -25,11 +20,7 @@ describe('LoginForm', () => {
     const mockSubmit = vi.fn((e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
     });
-    render(
-      <BrowserRouter>
-        <LoginForm onSubmit={mockSubmit} loading={false} />
-      </BrowserRouter>
-    );
+    render(<LoginForm onSubmit={mockSubmit} loading={false} />);
     
     const loginButton = screen.getByRole('button', { name: /login/i });
     await userEvent.click(loginButton);
@@ -42,38 +33,13 @@ describe('LoginForm', () => {
     const mockSubmit = vi.fn((e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
     });
-    render(
-      <BrowserRouter>
-        <LoginForm onSubmit={mockSubmit} loading={false} />
-      </BrowserRouter>
-    );
+    render(<LoginForm onSubmit={mockSubmit} loading={false} />);
     
-    await userEvent.type(screen.getByPlaceholderText(/email/i), 'string');
-    await userEvent.type(screen.getByPlaceholderText(/password/i), 'string');
+    await userEvent.type(screen.getByPlaceholderText(/email/i), 'test@example.com');
+    await userEvent.type(screen.getByPlaceholderText(/password/i), 'password123');
     
     const loginButton = screen.getByRole('button', { name: /login/i });
     await userEvent.click(loginButton);
-
-    expect(mockSubmit).toHaveBeenCalled();
-  });
-
-  it('handles form submission', async () => {
-    const mockSubmit = vi.fn((e: FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-    });
-    render(
-      <BrowserRouter>
-        <LoginForm onSubmit={mockSubmit} loading={false} />
-      </BrowserRouter>
-    );
-
-    fireEvent.change(screen.getByPlaceholderText(/email/i), {
-      target: { value: 'string' }
-    });
-    fireEvent.change(screen.getByPlaceholderText(/password/i), {
-      target: { value: 'string' }
-    });
-    fireEvent.submit(screen.getByRole('button', { name: /login/i }));
 
     expect(mockSubmit).toHaveBeenCalled();
   });
@@ -82,11 +48,7 @@ describe('LoginForm', () => {
     const mockSubmit = vi.fn((e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
     });
-    render(
-      <BrowserRouter>
-        <LoginForm onSubmit={mockSubmit} loading={true} />
-      </BrowserRouter>
-    );
+    render(<LoginForm onSubmit={mockSubmit} loading={true} />);
     
     expect(screen.getByRole('button', { name: /logging in/i })).toBeInTheDocument();
   });
