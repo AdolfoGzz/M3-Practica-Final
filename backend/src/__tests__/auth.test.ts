@@ -1,9 +1,14 @@
 import request from 'supertest';
 import { app } from '../index.js';
 import { connectDB } from '../config/db.js';
+import { beforeAll, afterAll, describe, it, expect } from '@jest/globals';
 
 beforeAll(async () => {
     await connectDB();
+});
+
+afterAll(async () => {
+    // Clean up test data if needed
 });
 
 describe('Auth Endpoints', () => {
@@ -44,8 +49,8 @@ describe('Auth Endpoints', () => {
         const res = await request(app)
             .post('/api/auth/login')
             .send({
-                email: 'test@example.com',
-                password: 'password123'
+                email: 'string',
+                password: 'string'
             });
         expect(res.status).toBe(200);
         expect(res.body).toHaveProperty('token');

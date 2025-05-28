@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { db } from '../config/db.js';
 
@@ -48,6 +48,9 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 export const login = async (req, res) => {
     try {
         const { username, password } = req.body;
+        if (!username || !password) {
+            return res.status(400).json({ message: 'Username and password are required' });
+        }
         
         const result = await db.request()
             .input('username', username)
